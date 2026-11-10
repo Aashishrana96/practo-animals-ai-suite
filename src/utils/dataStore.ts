@@ -74,3 +74,4 @@ export function getAllSubmissions(): SubmissionRecord[] {
     return [];
   }
 }
+
