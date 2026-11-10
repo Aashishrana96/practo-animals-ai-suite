@@ -1,0 +1,372 @@
+import { Provider } from '../types';
+
+export const CITIES = ['Bangalore', 'Mumbai', 'Delhi-NCR', 'Pune', 'Hyderabad'];
+
+export const SAMPLE_PROVIDERS: Provider[] = [
+  {
+    id: 'prov-1',
+    name: 'Cessna Lifeline 24/7 Veterinary Hospital',
+    tagline: 'Premier Multi-Specialty Animal Hospital & ICU',
+    serviceType: 'hospital',
+    animalTypes: ['dog', 'cat', 'bird', 'exotic'],
+    rating: 4.8,
+    reviewCount: 384,
+    distanceKm: 1.2,
+    locality: 'Indiranagar',
+    city: 'Bangalore',
+    address: '148, 1st Cross, Domlur 2nd Stage, Indiranagar, Bengaluru, Karnataka 560071',
+    phone: '+91 80 4115 1060',
+    whatsapp: '+91 98450 12345',
+    emergencyPhone: '+91 80 4115 9999',
+    isOpenNow: true,
+    is24x7: true,
+    isEmergencyReady: true,
+    offersHomeVisit: true,
+    isVerified: true,
+    verificationBadge: 'PawPulse SuperVerified™ (VCI-2012-KA-419)',
+    consultationFee: 750,
+    priceLevel: '₹₹₹',
+    specialties: ['Critical Care & ICU', 'Orthopedic Surgery', 'Cardiology', 'Ophthalmology', 'Diagnostics'],
+    facilities: ['24/7 Oxygen ICU', 'Digital Radiography', 'Blood Bank', 'Dedicated Feline Ward', 'Emergency OT'],
+    operatingHours: '24 Hours Open • 7 Days a Week',
+    image: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=800&q=80',
+    doctors: [
+      { name: 'Dr. Pawan Kumar', degree: 'MVSc (Surgery & Radiology)', experienceYears: 18, specialty: 'Senior Orthopedic Surgeon' },
+      { name: 'Dr. Sunita Murthy', degree: 'BVSc & AH, Feline Specialist', experienceYears: 11, specialty: 'Feline Internal Medicine' }
+    ],
+    reviews: [
+      {
+        id: 'rev-1',
+        author: 'Rhea Sen',
+        pet: 'Golden Retriever (Leo, 4yo)',
+        rating: 5,
+        date: '3 days ago',
+        comment: 'Rushed Leo here at 2 AM with acute gastric dilation. Dr. Pawan and the ICU team operated immediately. Saved his life. The most equipped 24/7 facility in Bangalore.',
+        verifiedVisit: true
+      },
+      {
+        id: 'rev-2',
+        author: 'Karthik Rao',
+        pet: 'Persian Cat (Milo)',
+        rating: 5,
+        date: '2 weeks ago',
+        comment: 'Separate feline waiting area kept Milo calm. Very clean facility and transparent billing without unneeded lab tests.',
+        verifiedVisit: true
+      }
+    ],
+    languages: ['English', 'Kannada', 'Hindi'],
+    paymentMethods: ['UPI / QR', 'Credit & Debit Cards', 'Pet Insurance Direct Cashless', 'Cash'],
+    coordinates: { lat: 12.9625, lng: 77.6405 }
+  },
+  {
+    id: 'prov-2',
+    name: 'Crown Vet Multi-Speciality Clinic',
+    tagline: 'Compassionate Modern Clinical Care & Preventive Health',
+    serviceType: 'vet',
+    animalTypes: ['dog', 'cat'],
+    rating: 4.7,
+    reviewCount: 228,
+    distanceKm: 2.8,
+    locality: 'Koramangala 4th Block',
+    city: 'Bangalore',
+    address: '80 Feet Road, 4th Block, Koramangala, Bengaluru, Karnataka 560034',
+    phone: '+91 80 4567 8900',
+    whatsapp: '+91 91080 34567',
+    isOpenNow: true,
+    is24x7: false,
+    isEmergencyReady: false,
+    offersHomeVisit: true,
+    isVerified: true,
+    verificationBadge: 'PawPulse Verified™ (VCI-2016-KA-881)',
+    consultationFee: 600,
+    priceLevel: '₹₹',
+    specialties: ['General OPD', 'Vaccination', 'Dental Prophylaxis', 'Dermatology'],
+    facilities: ['In-house Pharmacy', 'Ultrasonography', 'Microchipping', 'Grooming Wing'],
+    operatingHours: '9:00 AM - 8:30 PM (Mon-Sun)',
+    image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
+    doctors: [
+      { name: 'Dr. Arvind Swamy', degree: 'BVSc & AH', experienceYears: 9, specialty: 'Small Animal Medicine' }
+    ],
+    reviews: [
+      {
+        id: 'rev-3',
+        author: 'Meenakshi Iyer',
+        pet: 'Indie Rescue (Sheru)',
+        rating: 5,
+        date: '1 week ago',
+        comment: 'They are exceptionally kind with rescues! Zero judgement and very gentle vaccinations. Dr. Arvind takes 20 minutes explaining diet plans.',
+        verifiedVisit: true
+      }
+    ],
+    languages: ['English', 'Hindi', 'Tamil', 'Kannada'],
+    paymentMethods: ['UPI', 'Debit Card', 'Cash'],
+    coordinates: { lat: 12.9345, lng: 77.6256 }
+  },
+  {
+    id: 'prov-3',
+    name: 'Bangalore Animal Rescue & Mobile Ambulance (BARMA)',
+    tagline: 'Dedicated 24/7 Animal Trauma Transit & Mobile ICU',
+    serviceType: 'ambulance',
+    animalTypes: ['dog', 'cat', 'livestock', 'bird'],
+    rating: 4.9,
+    reviewCount: 412,
+    distanceKm: 0.9,
+    locality: 'Central & East Zone',
+    city: 'Bangalore',
+    address: 'Base Station: Ulsoor Road, Bengaluru, Karnataka 560042',
+    phone: '+91 80 6900 7292',
+    whatsapp: '+91 98440 99911',
+    emergencyPhone: '1962 / +91 80 6900 7292',
+    isOpenNow: true,
+    is24x7: true,
+    isEmergencyReady: true,
+    offersHomeVisit: true,
+    isVerified: true,
+    verificationBadge: 'Govt. Affiliated Trauma Fleet (BBMP / AWBI)',
+    consultationFee: 400,
+    priceLevel: '₹',
+    specialties: ['Road Accident Trauma', 'Oxygen In-Transit', 'Stretcher Evacuation', 'Emergency Stabilization'],
+    facilities: ['Hydraulic Animal Stretcher', 'Continuous Oxygen Supply', 'Trained Vet Paramedic Onboard', 'GPS Live Tracking'],
+    operatingHours: '24 Hours Emergency Rapid Dispatch',
+    image: 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?auto=format&fit=crop&w=800&q=80',
+    doctors: [
+      { name: 'Dr. Rajesh Gowda', degree: 'BVSc, Emergency Trauma Paramedic', experienceYears: 7, specialty: 'Pre-Hospital Triage' }
+    ],
+    reviews: [
+      {
+        id: 'rev-4',
+        author: 'Arjun Nambiar',
+        pet: 'Community Dog (Tommy)',
+        rating: 5,
+        date: 'Yesterday',
+        comment: 'A car hit our community dog near 100ft road. Called their emergency line, ambulance arrived in 14 mins with splints and saline. Absolute life savers!',
+        verifiedVisit: true
+      }
+    ],
+    languages: ['Kannada', 'English', 'Hindi', 'Telugu'],
+    paymentMethods: ['UPI', 'Donation / Free for Strays', 'Cash'],
+    coordinates: { lat: 12.9783, lng: 77.6215 }
+  },
+  {
+    id: 'prov-4',
+    name: 'Paws & Pines Luxury Boarding & Daycare',
+    tagline: 'Cage-Free 2-Acre Farm Stay with CCTV & Vet-on-Call',
+    serviceType: 'boarding',
+    animalTypes: ['dog', 'cat'],
+    rating: 4.9,
+    reviewCount: 156,
+    distanceKm: 6.5,
+    locality: 'Sarjapur - Bellandur Green Belt',
+    city: 'Bangalore',
+    address: 'Survey 42/1, Off Sarjapur Road, Kodathi, Bengaluru, Karnataka 560035',
+    phone: '+91 99000 88219',
+    whatsapp: '+91 99000 88219',
+    isOpenNow: true,
+    is24x7: true,
+    isEmergencyReady: true,
+    offersHomeVisit: false,
+    isVerified: true,
+    verificationBadge: 'PawPulse Inspected & Certified Kennel',
+    consultationFee: 900,
+    priceLevel: '₹₹₹',
+    specialties: ['Cage-Free Social Boarding', 'Hydrotherapy Pool', 'Puppy Daycare', 'Senior Dog Specialized Care'],
+    facilities: ['24/7 Live Webcams for Parents', '2-Acre Grass Run', 'Resident Veterinary Nurse', 'Air-Conditioned Suites'],
+    operatingHours: 'Drop-off & Pick-up: 7:00 AM - 9:00 PM (Open 365 Days)',
+    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80',
+    doctors: [
+      { name: 'Dr. Shruthi Hegde', degree: 'BVSc & AH (Consultant)', experienceYears: 8, specialty: 'Preventive & Behavioral Health' }
+    ],
+    reviews: [
+      {
+        id: 'rev-5',
+        author: 'Pooja Agarwal',
+        pet: 'Beagle (Bagheera, 3yo)',
+        rating: 5,
+        date: '4 days ago',
+        comment: 'Went on a 1-week business trip. Loved checking in on the HD CCTV app. Bagheera made so many dog friends and came back smelling freshly shampooed!',
+        verifiedVisit: true
+      }
+    ],
+    languages: ['English', 'Hindi', 'Kannada'],
+    paymentMethods: ['UPI', 'Credit Card', 'Net Banking'],
+    coordinates: { lat: 12.8988, lng: 77.6982 }
+  },
+  {
+    id: 'prov-5',
+    name: 'VetScan Advanced Animal Diagnostic Lab & Imaging',
+    tagline: 'NABL Certified Veterinary Pathology, 32-Slice CT & Ultrasound',
+    serviceType: 'diagnostics',
+    animalTypes: ['dog', 'cat', 'bird', 'exotic', 'livestock'],
+    rating: 4.6,
+    reviewCount: 178,
+    distanceKm: 3.1,
+    locality: 'HSR Layout Sector 1',
+    city: 'Bangalore',
+    address: '27th Main Rd, Sector 1, HSR Layout, Bengaluru, Karnataka 560102',
+    phone: '+91 80 2572 1188',
+    whatsapp: '+91 97412 88390',
+    isOpenNow: true,
+    is24x7: false,
+    isEmergencyReady: false,
+    offersHomeVisit: true,
+    isVerified: true,
+    verificationBadge: 'NABL-Accredited Vet Diagnostics (V-901)',
+    consultationFee: 500,
+    priceLevel: '₹₹',
+    specialties: ['Comprehensive CBC & Biochemistry', 'Digital Canine/Feline X-Ray', 'Color Doppler Echocardiogram', 'Histopathology & Biopsy'],
+    facilities: ['Home Sample Collection via Phlebotomist', '2-Hour Emergency Lab Reports via WhatsApp', 'Sedation Free Ultrasound Suite'],
+    operatingHours: '7:30 AM - 9:00 PM (Sample collection from 6:30 AM)',
+    image: 'https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&w=800&q=80',
+    doctors: [
+      { name: 'Dr. Sandeep Kulkarni', degree: 'MVSc (Veterinary Pathology)', experienceYears: 14, specialty: 'Chief Veterinary Pathologist' }
+    ],
+    reviews: [
+      {
+        id: 'rev-6',
+        author: 'Vikram Chawla',
+        pet: 'German Shepherd (Max, 9yo)',
+        rating: 5,
+        date: '1 month ago',
+        comment: 'Their phlebotomist arrived at home in 30 minutes for blood collection. Reports with reference ranges for senior canines arrived on WhatsApp within 3 hours.',
+        verifiedVisit: true
+      }
+    ],
+    languages: ['English', 'Hindi', 'Kannada', 'Marathi'],
+    paymentMethods: ['UPI', 'Cards', 'Cash'],
+    coordinates: { lat: 12.9118, lng: 77.6534 }
+  },
+  {
+    id: 'prov-6',
+    name: 'CUPA (Compassion Unlimited Plus Action) Shelter & OPD',
+    tagline: 'Non-Profit Animal Welfare, Stray Treatment & Adoption Center',
+    serviceType: 'ngo',
+    animalTypes: ['dog', 'cat', 'bird', 'livestock'],
+    rating: 4.7,
+    reviewCount: 620,
+    distanceKm: 4.5,
+    locality: 'Hebbal / RT Nagar',
+    city: 'Bangalore',
+    address: 'KVAFSU Campus, Bellary Road, Hebbal, Bengaluru, Karnataka 560024',
+    phone: '+91 80 2294 7307',
+    whatsapp: '+91 98451 77720',
+    emergencyPhone: '+91 80 2294 7307',
+    isOpenNow: true,
+    is24x7: false,
+    isEmergencyReady: true,
+    offersHomeVisit: false,
+    isVerified: true,
+    verificationBadge: 'Govt. Registered NGO (80G Tax-Exempt)',
+    consultationFee: 150,
+    priceLevel: '₹',
+    specialties: ['Free/Subsidized Stray Treatment', 'Animal Birth Control (ABC)', 'Adoption Camps', 'Cruelty Intervention'],
+    facilities: ['Quarantine Ward', 'Large Animal Shelter', 'Avian Recovery Enclosure', 'Subsidized Surgery OT'],
+    operatingHours: '9:00 AM - 5:00 PM (Emergency Rescue 24/7 on call)',
+    image: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=800&q=80',
+    doctors: [
+      { name: 'Dr. Nalini George', degree: 'BVSc & AH', experienceYears: 15, specialty: 'Community Animal Surgeon' }
+    ],
+    reviews: [
+      {
+        id: 'rev-7',
+        author: 'Deepa Srinivas',
+        pet: 'Kitten Rescue (Penny)',
+        rating: 5,
+        date: '3 weeks ago',
+        comment: 'Found an abandoned 3-week old kitten. The CUPA doctors nursed her with formula and dewormed her without charging a single rupee. Supported them with a donation.',
+        verifiedVisit: true
+      }
+    ],
+    languages: ['Kannada', 'English', 'Hindi', 'Tamil'],
+    paymentMethods: ['UPI / Donation', 'Cash', 'Direct Bank Transfer (80G)'],
+    coordinates: { lat: 13.0358, lng: 77.597 }
+  },
+  {
+    id: 'prov-7',
+    name: 'Dr. Vivek Bird & Exotic Pet Clinic',
+    tagline: 'Specialized Avian, Reptile, Rabbit & Small Mammal Care',
+    serviceType: 'vet',
+    animalTypes: ['bird', 'exotic'],
+    rating: 4.9,
+    reviewCount: 142,
+    distanceKm: 3.8,
+    locality: 'Jayanagar 5th Block',
+    city: 'Bangalore',
+    address: '32nd Cross, 5th Block, Jayanagar, Bengaluru, Karnataka 560041',
+    phone: '+91 80 2664 9191',
+    whatsapp: '+91 94480 55122',
+    isOpenNow: true,
+    is24x7: false,
+    isEmergencyReady: true,
+    offersHomeVisit: false,
+    isVerified: true,
+    verificationBadge: 'PawPulse Verified™ Avian Specialist',
+    consultationFee: 800,
+    priceLevel: '₹₹₹',
+    specialties: ['Avian Beak & Feather Disease', 'Small Mammal Dentistry (Rabbits/Hamsters)', 'Reptile Husbandry & Nutrition'],
+    facilities: ['Avian Nebulization Incubator', 'Microsurgery Instruments', 'Specialized Exotic Diets'],
+    operatingHours: '10:00 AM - 7:00 PM (Tuesday to Sunday)',
+    image: 'https://images.unsplash.com/photo-1452570053593-1b9208edd49c?auto=format&fit=crop&w=800&q=80',
+    doctors: [
+      { name: 'Dr. Vivek N. Shastri', degree: 'MVSc (Wildlife & Exotics), F.A.V.', experienceYears: 13, specialty: 'Avian & Exotic Wildlife Specialist' }
+    ],
+    reviews: [
+      {
+        id: 'rev-8',
+        author: 'Tanvi Shah',
+        pet: 'Cockatiel (Pippin)',
+        rating: 5,
+        date: '5 days ago',
+        comment: 'Almost impossible to find real bird specialists in the city. Dr. Vivek diagnosed egg-binding in Pippin and performed safe micro-extraction under gentle isoflurane. Cannot thank him enough.',
+        verifiedVisit: true
+      }
+    ],
+    languages: ['English', 'Kannada', 'Hindi'],
+    paymentMethods: ['UPI', 'Cards', 'Cash'],
+    coordinates: { lat: 12.9231, lng: 77.5833 }
+  },
+  {
+    id: 'prov-8',
+    name: 'Apollo Animal Emergency Care & Mobile Van',
+    tagline: '24/7 Mobile Veterinary Clinic for Doorstep Critical Care',
+    serviceType: 'ambulance',
+    animalTypes: ['dog', 'cat', 'exotic'],
+    rating: 4.8,
+    reviewCount: 195,
+    distanceKm: 2.1,
+    locality: 'Whitefield',
+    city: 'Bangalore',
+    address: 'ITPL Main Road, Whitefield, Bengaluru, Karnataka 560066',
+    phone: '+91 80 6799 4444',
+    whatsapp: '+91 96060 22119',
+    emergencyPhone: '+91 80 6799 4444',
+    isOpenNow: true,
+    is24x7: true,
+    isEmergencyReady: true,
+    offersHomeVisit: true,
+    isVerified: true,
+    verificationBadge: 'PawPulse SuperVerified™',
+    consultationFee: 850,
+    priceLevel: '₹₹₹',
+    specialties: ['Doorstep Wound Dressing', 'Mobile Ultrasound', 'Intravenous Therapy', 'Emergency Euthanasia with Dignity'],
+    facilities: ['Air-Conditioned Mobile Van', 'Crash Cart & Defibrillator', 'Porta-Xray'],
+    operatingHours: '24 Hours On-Demand Doorstep Dispatch',
+    image: 'https://images.unsplash.com/photo-1544568100-847a948585b9?auto=format&fit=crop&w=800&q=80',
+    doctors: [
+      { name: 'Dr. Farhan Qureshi', degree: 'BVSc & AH', experienceYears: 10, specialty: 'Emergency Mobile Medicine' }
+    ],
+    reviews: [
+      {
+        id: 'rev-9',
+        author: 'Sanjay Dutt',
+        pet: 'Labrador (Bruno, 13yo)',
+        rating: 5,
+        date: '2 weeks ago',
+        comment: 'Bruno is 13 and cannot climb into a car anymore. Their mobile clinic van arrived right at our apartment portico in Whitefield. Flawless care.',
+        verifiedVisit: true
+      }
+    ],
+    languages: ['English', 'Hindi', 'Urdu', 'Kannada'],
+    paymentMethods: ['UPI', 'Credit Card', 'Cash'],
+    coordinates: { lat: 12.9698, lng: 77.7499 }
+  }
+];
