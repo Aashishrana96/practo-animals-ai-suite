@@ -8,13 +8,15 @@ import { CarouselPage } from './pages/CarouselPage';
 import { WrittenBrief } from './pages/WrittenBrief';
 
 export function App() {
-  // Normalize initial route from window.location.pathname or hash
+  // Normalize initial route from window.location.pathname or window.location.hash
   const getInitialRoute = (): string => {
     const path = window.location.pathname.toLowerCase();
-    if (path.includes('animals')) return '/animals';
-    if (path.includes('ai-course') || path.includes('aicourse') || path.includes('ai')) return '/ai-course';
-    if (path.includes('carousel')) return '/carousel';
-    if (path.includes('overview') || path.includes('brief')) return '/overview';
+    const hash = window.location.hash.toLowerCase();
+    
+    if (path.includes('animals') || hash.includes('animals')) return '/animals';
+    if (path.includes('ai-course') || hash.includes('ai-course') || path.includes('ai') || hash.includes('ai')) return '/ai-course';
+    if (path.includes('carousel') || hash.includes('carousel')) return '/carousel';
+    if (path.includes('overview') || hash.includes('overview') || path.includes('brief') || hash.includes('brief')) return '/overview';
     return '/';
   };
 
@@ -25,12 +27,17 @@ export function App() {
       setCurrentRoute(getInitialRoute());
     };
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
   }, []);
 
   const navigate = (route: string) => {
     setCurrentRoute(route);
-    window.history.pushState({}, '', route);
+    // Keep both hash and history state updated for 100% resilience on static hosting & GitHub Pages
+    window.location.hash = route;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -63,4 +70,3 @@ export function App() {
 }
 
 export default App;
-
