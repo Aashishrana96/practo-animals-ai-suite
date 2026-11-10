@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { SAMPLE_PROVIDERS, CITIES } from '../data/animalProviders';
 import { Provider, FilterState, ServiceType } from '../types';
 import { 
@@ -20,32 +20,37 @@ import {
   PlusCircle, 
   X, 
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Database,
+  Navigation as NavigationIcon,
+  Loader2
 } from 'lucide-react';
 import { ProviderDetailModal } from '../components/animals/ProviderDetailModal';
 import { SubmitCorrectionModal } from '../components/animals/SubmitCorrectionModal';
 import { ListBusinessModal } from '../components/animals/ListBusinessModal';
 import { BookAppointmentModal } from '../components/animals/BookAppointmentModal';
-import { InteractiveMapView } from '../components/animals/InteractiveMapView';
+import { LeafletMapView } from '../components/animals/LeafletMapView';
 import { DesignRationaleDrawer } from '../components/animals/DesignRationaleDrawer';
+import { SubmissionsViewerModal } from '../components/SubmissionsViewerModal';
 
 export const AnimalsPage: React.FC = () => {
   // State for view mode: 'home' or 'search'
   const [activeTab, setActiveTab] = useState<'home' | 'search'>('home');
   const [displayMode, setDisplayMode] = useState<'list' | 'map'>('list');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filters State
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: '',
     serviceType: 'all',
     animalType: 'all',
-    city: 'Bangalore',
+    city: 'All Cities',
     openNowOnly: false,
     emergencyOnly: false,
     homeVisitOnly: false,
     verifiedOnly: false,
-    maxDistance: 10,
+    maxDistance: 15,
     minRating: 0,
     priceLevel: 'all',
     sortBy: 'recommended'
@@ -57,6 +62,7 @@ export const AnimalsPage: React.FC = () => {
   const [correctionModalProvider, setCorrectionModalProvider] = useState<Provider | null>(null);
   const [bookingModalProvider, setBookingModalProvider] = useState<Provider | null>(null);
   const [isListBusinessOpen, setIsListBusinessOpen] = useState(false);
+  const [isDatabaseModalOpen, setIsDatabaseModalOpen] = useState(false);
 
   // Notification Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -68,9 +74,26 @@ export const AnimalsPage: React.FC = () => {
     }, 4500);
   };
 
-  // Filter Logic
+  // Check URL query parameters for dynamic provider detail loading
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const provId = params.get('provider');
+    if (provId) {
+      const found = SAMPLE_PROVIDERS.find(p => p.id === provId);
+      if (found) {
+        setDetailModalProvider(found);
+      }
+    }
+  }, []);
+
+  // Filter Logic with Loading feedback
   const filteredProviders = useMemo(() => {
     return SAMPLE_PROVIDERS.filter((provider) => {
+      // City Filter
+      if (filters.city !== 'All Cities' && provider.city !== filters.city) {
+        return false;
+      }
+
       // Search Query
       if (filters.searchQuery.trim() !== '') {
         const q = filters.searchQuery.toLowerCase();
@@ -124,17 +147,31 @@ export const AnimalsPage: React.FC = () => {
     });
   }, [filters]);
 
+  const handleCityChange = (city: string) => {
+    setIsLoading(true);
+    setFilters(prev => ({ ...prev, city }));
+    setTimeout(() => setIsLoading(false), 200);
+  };
+
   const handleCategorySelect = (serviceType: ServiceType) => {
+    setIsLoading(true);
     setFilters(prev => ({ ...prev, serviceType }));
     setActiveTab('search');
-    window.scrollTo({ top: 350, behavior: 'smooth' });
+    setTimeout(() => {
+      setIsLoading(false);
+      window.scrollTo({ top: 350, behavior: 'smooth' });
+    }, 200);
   };
 
   const handleEmergencyTrigger = () => {
+    setIsLoading(true);
     setFilters(prev => ({ ...prev, emergencyOnly: true, serviceType: 'all' }));
     setActiveTab('search');
     showToast('🚨 Showing 24/7 emergency veterinary trauma hospitals & rapid animal ambulances.');
-    window.scrollTo({ top: 350, behavior: 'smooth' });
+    setTimeout(() => {
+      setIsLoading(false);
+      window.scrollTo({ top: 350, behavior: 'smooth' });
+    }, 200);
   };
 
   return (
@@ -179,7 +216,6 @@ export const AnimalsPage: React.FC = () => {
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-b from-teal-900 via-teal-950 to-slate-950 text-white pt-12 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Subtle decorative glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -197,7 +233,7 @@ export const AnimalsPage: React.FC = () => {
           </h1>
 
           <p className="mt-4 text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Discover verified veterinary clinics, 24/7 emergency ICUs, mobile ambulances, cage-free boarding, diagnostics, and rescue NGOs across Bangalore, Mumbai & Delhi.
+            Discover {SAMPLE_PROVIDERS.length}+ verified veterinary clinics, 24/7 emergency ICUs, mobile ambulances, cage-free boarding, diagnostics, and rescue NGOs.
           </p>
 
           {/* Search Bar & Location Selector */}
@@ -207,7 +243,7 @@ export const AnimalsPage: React.FC = () => {
               <MapPin className="w-4 h-4 text-teal-600 flex-shrink-0" />
               <select
                 value={filters.city}
-                onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
+                onChange={(e) => handleCityChange(e.target.value)}
                 className="bg-transparent text-xs font-bold text-slate-800 w-full focus:outline-none"
               >
                 {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -282,7 +318,7 @@ export const AnimalsPage: React.FC = () => {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
         {/* Navigation Tabs: "Homepage Overview" vs "Search & Discovery" */}
-        <div className="bg-white p-2 rounded-2xl shadow-xl border border-slate-200 flex items-center justify-between mb-8">
+        <div className="bg-white p-2 rounded-2xl shadow-xl border border-slate-200 flex flex-wrap items-center justify-between gap-2 mb-8">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('home')}
@@ -309,8 +345,17 @@ export const AnimalsPage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setIsDatabaseModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors min-h-[44px]"
+              title="Inspect captured submissions"
+            >
+              <Database className="w-3.5 h-3.5 text-teal-600" />
+              <span>Submissions DB</span>
+            </button>
+
+            <button
               onClick={() => setIsListBusinessOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl transition-colors min-h-[44px]"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl transition-colors min-h-[44px]"
             >
               <PlusCircle className="w-3.5 h-3.5 text-teal-600" />
               <span>List Your Practice</span>
@@ -318,8 +363,16 @@ export const AnimalsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Loading Spinner */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12 text-teal-700">
+            <Loader2 className="w-8 h-8 animate-spin" />
+            <span className="ml-2 font-bold text-sm">Updating filtered providers...</span>
+          </div>
+        )}
+
         {/* HOMEPAGE VIEW */}
-        {activeTab === 'home' && (
+        {!isLoading && activeTab === 'home' && (
           <div className="space-y-16 animate-in fade-in">
             {/* 6 Category Tiles */}
             <div>
@@ -339,42 +392,42 @@ export const AnimalsPage: React.FC = () => {
                     icon: '🩺',
                     title: 'Vet Clinics',
                     desc: 'OPD, checkups & vaccines',
-                    count: '420+ clinics'
+                    count: '6 Verified Clinics'
                   },
                   {
                     type: 'hospital' as ServiceType,
                     icon: '🏥',
                     title: '24/7 Hospitals',
                     desc: 'Surgeries, ICU & inpatient',
-                    count: '48 trauma centers'
+                    count: '5 Trauma Centers'
                   },
                   {
                     type: 'ambulance' as ServiceType,
                     icon: '🚑',
                     title: 'Ambulance',
                     desc: 'Emergency oxygen transit',
-                    count: '24/7 dispatch'
+                    count: '5 Rapid Fleets'
                   },
                   {
                     type: 'boarding' as ServiceType,
                     icon: '🏡',
                     title: 'Pet Boarding',
                     desc: 'Cage-free farm & daycare',
-                    count: '110+ stays'
+                    count: '5 Luxury Resorts'
                   },
                   {
                     type: 'diagnostics' as ServiceType,
                     icon: '🔬',
                     title: 'Diagnostics',
                     desc: 'Blood tests, X-Ray & CT',
-                    count: '35 NABL labs'
+                    count: '5 NABL Labs'
                   },
                   {
                     type: 'ngo' as ServiceType,
                     icon: '🕊️',
                     title: 'NGO Shelters',
                     desc: 'Rescue, ABC & adoption',
-                    count: '26 shelters'
+                    count: '5 Shelters'
                   }
                 ].map((cat) => (
                   <button
@@ -453,7 +506,7 @@ export const AnimalsPage: React.FC = () => {
                     <div className="p-5 flex-grow flex flex-col justify-between">
                       <div>
                         <div className="text-xs text-slate-400 font-medium">
-                          {provider.locality} • {provider.distanceKm} km away
+                          {provider.locality}, {provider.city} • {provider.distanceKm} km away
                         </div>
                         <h4 className="text-base font-extrabold text-slate-900 mt-1 leading-snug line-clamp-1">
                           {provider.name}
@@ -624,7 +677,7 @@ export const AnimalsPage: React.FC = () => {
         )}
 
         {/* SEARCH & DISCOVERY RESULTS VIEW */}
-        {activeTab === 'search' && (
+        {!isLoading && activeTab === 'search' && (
           <div className="space-y-6 animate-in fade-in">
             {/* Filter Bar & View Toggle */}
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
@@ -670,7 +723,7 @@ export const AnimalsPage: React.FC = () => {
                       }`}
                     >
                       <MapIcon className="w-3.5 h-3.5" />
-                      <span>Map View</span>
+                      <span>Leaflet Map View</span>
                     </button>
                   </div>
                 </div>
@@ -789,6 +842,17 @@ export const AnimalsPage: React.FC = () => {
                   {/* Filter controls */}
                   <div className="space-y-3 text-xs">
                     <div>
+                      <label className="block font-bold text-slate-700 mb-1">City</label>
+                      <select
+                        value={filters.city}
+                        onChange={e => setFilters(prev => ({ ...prev, city: e.target.value }))}
+                        className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-sm"
+                      >
+                        {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+
+                    <div>
                       <label className="block font-bold text-slate-700 mb-1">Service Type</label>
                       <select
                         value={filters.serviceType}
@@ -851,12 +915,12 @@ export const AnimalsPage: React.FC = () => {
                           searchQuery: '',
                           serviceType: 'all',
                           animalType: 'all',
-                          city: 'Bangalore',
+                          city: 'All Cities',
                           openNowOnly: false,
                           emergencyOnly: false,
                           homeVisitOnly: false,
                           verifiedOnly: false,
-                          maxDistance: 10,
+                          maxDistance: 15,
                           minRating: 0,
                           priceLevel: 'all',
                           sortBy: 'recommended'
@@ -878,9 +942,9 @@ export const AnimalsPage: React.FC = () => {
               </div>
             )}
 
-            {/* MAP VIEW */}
+            {/* REAL LEAFLET MAP VIEW */}
             {displayMode === 'map' && (
-              <InteractiveMapView
+              <LeafletMapView
                 providers={filteredProviders}
                 selectedProvider={selectedProvider}
                 onSelectProvider={(p) => setSelectedProvider(p)}
@@ -896,155 +960,171 @@ export const AnimalsPage: React.FC = () => {
                     <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
                     <h3 className="font-bold text-slate-900 text-base">No providers match your exact filters</h3>
                     <p className="text-xs text-slate-500 mt-1">
-                      Try widening the distance slider or removing the 24/7 filter.
+                      Try widening the distance slider or selecting "All Cities".
                     </p>
                     <button
-                      onClick={() => setFilters(prev => ({ ...prev, serviceType: 'all', animalType: 'all', emergencyOnly: false, maxDistance: 15 }))}
+                      onClick={() => setFilters(prev => ({ ...prev, serviceType: 'all', animalType: 'all', emergencyOnly: false, maxDistance: 20, city: 'All Cities' }))}
                       className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold"
                     >
                       Reset Filter Restrictions
                     </button>
                   </div>
                 ) : (
-                  filteredProviders.map((provider) => (
-                    <div
-                      key={provider.id}
-                      className="bg-white rounded-2xl border border-slate-200 shadow-xs hover:shadow-card transition-all p-4 sm:p-5 flex flex-col md:flex-row gap-5"
-                    >
-                      {/* Left: Thumbnail & Badges */}
-                      <div className="relative w-full md:w-56 h-48 md:h-auto rounded-xl overflow-hidden bg-slate-900 flex-shrink-0">
-                        <img
-                          src={provider.image}
-                          alt={provider.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-2 left-2 flex flex-col gap-1">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-700 text-white uppercase">
-                            {provider.serviceType}
-                          </span>
-                          {provider.is24x7 && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white animate-pulse">
-                              24/7 EMERGENCY
+                  filteredProviders.map((provider) => {
+                    const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(provider.name + ' ' + provider.address)}`;
+
+                    return (
+                      <div
+                        key={provider.id}
+                        className="bg-white rounded-2xl border border-slate-200 shadow-xs hover:shadow-card transition-all p-4 sm:p-5 flex flex-col md:flex-row gap-5"
+                      >
+                        {/* Left: Thumbnail & Badges */}
+                        <div className="relative w-full md:w-56 h-48 md:h-auto rounded-xl overflow-hidden bg-slate-900 flex-shrink-0">
+                          <img
+                            src={provider.image}
+                            alt={provider.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-2 left-2 flex flex-col gap-1">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-700 text-white uppercase">
+                              {provider.serviceType}
                             </span>
-                          )}
+                            {provider.is24x7 && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white animate-pulse">
+                                24/7 EMERGENCY
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Middle: Core Information */}
-                      <div className="flex-grow space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {provider.isVerified && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                              {provider.verificationBadge}
+                        {/* Middle: Core Information */}
+                        <div className="flex-grow space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {provider.isVerified && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                {provider.verificationBadge}
+                              </span>
+                            )}
+                            <span className="text-xs text-slate-400 font-medium">
+                              • {provider.locality}, {provider.city} ({provider.distanceKm} km away)
                             </span>
-                          )}
-                          <span className="text-xs text-slate-400 font-medium">
-                            • {provider.distanceKm} km from you ({provider.locality})
-                          </span>
-                        </div>
-
-                        <h3 
-                          onClick={() => setDetailModalProvider(provider)}
-                          className="text-lg font-extrabold text-slate-900 hover:text-teal-700 cursor-pointer leading-snug"
-                        >
-                          {provider.name}
-                        </h3>
-
-                        <p className="text-xs text-slate-600 line-clamp-1">{provider.tagline}</p>
-
-                        {/* Doctors & Specialties */}
-                        <div className="text-xs text-slate-700 space-y-1 pt-1">
-                          {provider.doctors.length > 0 && (
-                            <div className="text-[11px] text-slate-500">
-                              Veterinarian: <strong className="text-slate-800">{provider.doctors[0].name}</strong> ({provider.doctors[0].degree})
-                            </div>
-                          )}
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {provider.specialties.slice(0, 3).map((spec, i) => (
-                              <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
-                                {spec}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Animals Treated */}
-                        <div className="flex items-center gap-1.5 pt-1">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">Treated:</span>
-                          <div className="flex gap-1 text-xs">
-                            {provider.animalTypes.map(t => (
-                              <span key={t} className="text-[11px]">
-                                {t === 'dog' && '🐕'}
-                                {t === 'cat' && '🐈'}
-                                {t === 'bird' && '🦜'}
-                                {t === 'exotic' && '🦎'}
-                                {t === 'livestock' && '🐎'}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right: Pricing & Action Buttons */}
-                      <div className="md:w-56 flex md:flex-col justify-between items-end border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-5 flex-shrink-0">
-                        <div className="text-left md:text-right w-full">
-                          <div className="flex items-center md:justify-end gap-1">
-                            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                            <span className="font-extrabold text-slate-900 text-sm">{provider.rating}</span>
-                            <span className="text-xs text-slate-400">({provider.reviewCount})</span>
                           </div>
 
-                          <div className="mt-1">
-                            <div className="text-[10px] text-slate-400 uppercase">Consultation Fee</div>
-                            <div className="text-base font-black text-slate-900">
-                              ₹{provider.consultationFee}
-                              <span className="text-[10px] text-slate-500 font-normal"> / OPD</span>
-                            </div>
-                          </div>
-
-                          <div className="text-[11px] text-emerald-700 font-semibold mt-1">
-                            {provider.isOpenNow ? '🟢 Open Now' : '🔴 Closed'}
-                          </div>
-                        </div>
-
-                        {/* CTA Grid (≥44px tap targets) */}
-                        <div className="grid grid-cols-2 gap-1.5 w-full mt-3">
-                          <a
-                            href={`tel:${provider.emergencyPhone || provider.phone}`}
-                            className="min-h-[44px] px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            <span>Call</span>
-                          </a>
-
-                          <a
-                            href={`https://wa.me/${provider.whatsapp.replace(/[^0-9]/g, '')}?text=Hi!%20Found%20you%20on%20PawPulse.`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="min-h-[44px] px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>WhatsApp</span>
-                          </a>
-
-                          <button
+                          <h3 
                             onClick={() => setDetailModalProvider(provider)}
-                            className="min-h-[44px] px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center transition-all"
+                            className="text-lg font-extrabold text-slate-900 hover:text-teal-700 cursor-pointer leading-snug"
                           >
-                            Details
-                          </button>
+                            {provider.name}
+                          </h3>
 
-                          <button
-                            onClick={() => setBookingModalProvider(provider)}
-                            className="min-h-[44px] px-3 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-xl text-xs font-bold flex items-center justify-center transition-all"
-                          >
-                            Enquire
-                          </button>
+                          <p className="text-xs text-slate-600 line-clamp-1">{provider.tagline}</p>
+
+                          {/* Doctors & Specialties */}
+                          <div className="text-xs text-slate-700 space-y-1 pt-1">
+                            {provider.doctors.length > 0 && (
+                              <div className="text-[11px] text-slate-500">
+                                Veterinarian: <strong className="text-slate-800">{provider.doctors[0].name}</strong> ({provider.doctors[0].degree})
+                              </div>
+                            )}
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {provider.specialties.slice(0, 3).map((spec, i) => (
+                                <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                                  {spec}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Animals Treated & Address */}
+                          <div className="flex items-center justify-between pt-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase">Treated:</span>
+                              <div className="flex gap-1 text-xs">
+                                {provider.animalTypes.map(t => (
+                                  <span key={t} className="text-[11px]">
+                                    {t === 'dog' && '🐕'}
+                                    {t === 'cat' && '🐈'}
+                                    {t === 'bird' && '🦜'}
+                                    {t === 'exotic' && '🦎'}
+                                    {t === 'livestock' && '🐎'}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+
+                            <a
+                              href={directionsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1"
+                            >
+                              <NavigationIcon className="w-3 h-3" />
+                              <span>Directions</span>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Right: Pricing & Action Buttons */}
+                        <div className="md:w-56 flex md:flex-col justify-between items-end border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-5 flex-shrink-0">
+                          <div className="text-left md:text-right w-full">
+                            <div className="flex items-center md:justify-end gap-1">
+                              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                              <span className="font-extrabold text-slate-900 text-sm">{provider.rating}</span>
+                              <span className="text-xs text-slate-400">({provider.reviewCount})</span>
+                            </div>
+
+                            <div className="mt-1">
+                              <div className="text-[10px] text-slate-400 uppercase">Consultation Fee</div>
+                              <div className="text-base font-black text-slate-900">
+                                ₹{provider.consultationFee}
+                                <span className="text-[10px] text-slate-500 font-normal"> / OPD</span>
+                              </div>
+                            </div>
+
+                            <div className="text-[11px] text-emerald-700 font-semibold mt-1">
+                              {provider.isOpenNow ? '🟢 Open Now' : '🔴 Closed'}
+                            </div>
+                          </div>
+
+                          {/* CTA Grid (≥44px tap targets) */}
+                          <div className="grid grid-cols-2 gap-1.5 w-full mt-3">
+                            <a
+                              href={`tel:${provider.emergencyPhone || provider.phone}`}
+                              className="min-h-[44px] px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all"
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                              <span>Call</span>
+                            </a>
+
+                            <a
+                              href={`https://wa.me/${provider.whatsapp.replace(/[^0-9]/g, '')}?text=Hi!%20Found%20you%20on%20PawPulse.`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="min-h-[44px] px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span>WhatsApp</span>
+                            </a>
+
+                            <button
+                              onClick={() => setDetailModalProvider(provider)}
+                              className="min-h-[44px] px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center transition-all"
+                            >
+                              Details
+                            </button>
+
+                            <button
+                              onClick={() => setBookingModalProvider(provider)}
+                              className="min-h-[44px] px-3 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-xl text-xs font-bold flex items-center justify-center transition-all"
+                            >
+                              Enquire
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             )}
@@ -1079,6 +1159,11 @@ export const AnimalsPage: React.FC = () => {
         provider={bookingModalProvider}
         onClose={() => setBookingModalProvider(null)}
         onSuccess={(msg) => showToast(msg)}
+      />
+
+      <SubmissionsViewerModal
+        isOpen={isDatabaseModalOpen}
+        onClose={() => setIsDatabaseModalOpen(false)}
       />
     </div>
   );

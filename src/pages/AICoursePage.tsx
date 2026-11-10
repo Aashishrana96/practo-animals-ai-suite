@@ -9,6 +9,8 @@ import {
   FAQS 
 } from '../data/courseData';
 import { LeadSubmission } from '../types';
+import { submitToBackend } from '../utils/dataStore';
+import { SubmissionsViewerModal } from '../components/SubmissionsViewerModal';
 import { 
   Sparkles, 
   CheckCircle2, 
@@ -28,7 +30,9 @@ import {
   Target,
   Send,
   X,
-  Workflow
+  Workflow,
+  Download,
+  Database
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -37,6 +41,9 @@ export const AICoursePage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'demo' | 'reserve'>('demo');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isDatabaseModalOpen, setIsDatabaseModalOpen] = useState(false);
   
   // Lead Form State
   const [formData, setFormData] = useState<LeadSubmission>({
@@ -48,6 +55,8 @@ export const AICoursePage: React.FC = () => {
     source: 'Website Landing Page'
   });
 
+  const [selectedDemoSlot, setSelectedDemoSlot] = useState('Saturday 4 PM IST');
+
   // FAQ Accordion State
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
@@ -56,18 +65,56 @@ export const AICoursePage: React.FC = () => {
 
   const handleOpenLeadModal = (mode: 'demo' | 'reserve') => {
     setModalMode(mode);
+    setErrorMessage('');
     setIsSubmitted(false);
     setIsModalOpen(true);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.fullName.trim() || !formData.phone.trim()) {
+      setErrorMessage('Please enter both your full name and WhatsApp number.');
+      return;
+    }
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    await submitToBackend('course_lead', {
+      ...formData,
+      modalMode,
+      selectedDemoSlot,
+      submittedAt: new Date().toISOString()
+    });
+
+    setIsSubmitting(false);
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 }
     });
     setIsSubmitted(true);
+  };
+
+  // Generate calendar invite .ics download
+  const downloadCalendarInvite = () => {
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//CogniShift AI Academy//Live Demo//EN
+BEGIN:VEVENT
+SUMMARY:Practical AI & Agentic Systems Live Masterclass Demo
+DESCRIPTION:Join lead instructors for a 45-min live demo on building autonomous WhatsApp agents and LLM production pipelines.
+LOCATION:https://zoom.us/j/sample-cognishift-demo
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR`;
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'CogniShift_AI_Live_Demo.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -99,6 +146,14 @@ export const AICoursePage: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setIsDatabaseModalOpen(true)}
+              className="text-xs font-bold text-slate-400 hover:text-white px-2 py-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 flex items-center gap-1"
+            >
+              <Database className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hidden sm:inline">DB Inspector</span>
+            </button>
+
+            <button
               onClick={() => handleOpenLeadModal('demo')}
               className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2 min-h-[44px]"
             >
@@ -117,7 +172,6 @@ export const AICoursePage: React.FC = () => {
 
       {/* Hero Section */}
       <div className="relative pt-12 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Futuristic glowing gradient mesh */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-indigo-600/20 via-cyan-500/15 to-purple-600/10 blur-[130px] rounded-full pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
@@ -322,44 +376,6 @@ export const AICoursePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Who It Is For */}
-        <div>
-          <div className="text-center max-w-xl mx-auto mb-10">
-            <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Cohort Composition</span>
-            <h2 className="text-2xl font-extrabold text-white mt-1">Built For Practical Builders</h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                title: 'Students & Recent Grads',
-                problem: 'Generic DSA resumes get filtered by automated ATS screenings.',
-                solution: 'Stand out by demonstrating 3 deployed agentic workflows and AI automations with verifiable metrics.'
-              },
-              {
-                title: 'Working Engineers & PMs',
-                problem: 'Wasting 15+ hours weekly on manual copy-pasting, SQL queries, and Jira status synthesis.',
-                solution: 'Automate repetitive workflows, ship internal AI tooling, and lead generative AI initiatives inside your org.'
-              },
-              {
-                title: 'Founders & Freelancers',
-                problem: 'Hiring full-time agencies drains cash before reaching product-market fit.',
-                solution: 'Build your own content engine, WhatsApp triage bot, and MVP frontend without hiring an in-house team.'
-              }
-            ].map((persona, idx) => (
-              <div key={idx} className="p-6 rounded-2xl bg-[#0F1422] border border-slate-800/80">
-                <h3 className="font-extrabold text-white text-base">{persona.title}</h3>
-                <div className="mt-3 text-xs text-rose-300/90 bg-rose-950/30 p-2.5 rounded-lg border border-rose-900/50">
-                  <strong>The Friction:</strong> {persona.problem}
-                </div>
-                <div className="mt-3 text-xs text-emerald-300/90 bg-emerald-950/30 p-2.5 rounded-lg border border-emerald-900/50">
-                  <strong>The Shift:</strong> {persona.solution}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Student Capstone Showcase */}
         <div id="outcomes" className="scroll-mt-24">
           <div className="text-center max-w-2xl mx-auto mb-12">
@@ -506,31 +522,7 @@ export const AICoursePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Testimonials */}
-        <div>
-          <div className="text-center max-w-xl mx-auto mb-10">
-            <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Alumni Reviews</span>
-            <h2 className="text-2xl font-extrabold text-white mt-1">What Past Graduates Say</h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.id} className="p-6 rounded-2xl bg-[#0F1422] border border-slate-800 flex flex-col justify-between">
-                <p className="text-xs text-slate-300 leading-relaxed italic">"{t.quote}"</p>
-                <div className="mt-4 pt-4 border-t border-slate-800 flex items-center gap-3">
-                  <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full object-cover" />
-                  <div>
-                    <div className="text-xs font-bold text-white">{t.name}</div>
-                    <div className="text-[10px] text-slate-400">{t.role} @ {t.company}</div>
-                    <div className="text-[10px] text-emerald-400 font-medium mt-0.5">{t.outcome}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Lead Capture Architecture Flow Diagram (The required backend note & visual) */}
+        {/* Lead Capture Architecture Flow Diagram */}
         <div className="p-8 rounded-3xl bg-[#0B0F19] border border-indigo-900/50 relative overflow-hidden">
           <div className="max-w-2xl mb-6">
             <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -545,7 +537,6 @@ export const AICoursePage: React.FC = () => {
             </p>
           </div>
 
-          {/* Interactive visual workflow diagram */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-center">
             {[
               {
@@ -658,6 +649,12 @@ export const AICoursePage: React.FC = () => {
               <X className="w-5 h-5" />
             </button>
 
+            {errorMessage && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-300 text-xs font-bold">
+                {errorMessage}
+              </div>
+            )}
+
             {!isSubmitted ? (
               <div>
                 <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono font-bold uppercase tracking-wider mb-2">
@@ -688,7 +685,7 @@ export const AICoursePage: React.FC = () => {
 
                   {/* Field 2: WhatsApp Number */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 uppercase mb-1">WhatsApp Number (For demo invite)</label>
+                    <label className="block text-xs font-bold text-slate-300 uppercase mb-1">WhatsApp Number (For demo link)</label>
                     <input
                       type="tel"
                       required
@@ -714,16 +711,38 @@ export const AICoursePage: React.FC = () => {
                     </select>
                   </div>
 
+                  {/* Demo Slot Selection */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Preferred Demo Slot</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['Saturday 4 PM IST', 'Sunday 11 AM IST'].map(slot => (
+                        <button
+                          type="button"
+                          key={slot}
+                          onClick={() => setSelectedDemoSlot(slot)}
+                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+                            selectedDemoSlot === slot
+                              ? 'border-cyan-400 bg-cyan-950/40 text-cyan-300'
+                              : 'border-slate-800 bg-slate-900 text-slate-400'
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="pt-2">
                     <button
                       type="submit"
+                      disabled={isSubmitting}
                       className="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-extrabold text-sm shadow-glow transition-all min-h-[48px] flex items-center justify-center gap-2"
                     >
                       <Send className="w-4 h-4" />
-                      <span>Confirm & Get Access</span>
+                      <span>{isSubmitting ? 'Saving to Database...' : 'Confirm & Get Access'}</span>
                     </button>
                     <p className="text-[11px] text-center text-slate-500 mt-2">
-                      Zero spam. Instant calendar link sent to WhatsApp & Email.
+                      Zero spam. Stored in cloud database with instant webhook dispatch.
                     </p>
                   </div>
                 </form>
@@ -736,23 +755,31 @@ export const AICoursePage: React.FC = () => {
                 </div>
                 <h3 className="text-2xl font-black text-white">You're on the Priority List!</h3>
                 <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
-                  Thank you, <strong className="text-white">{formData.fullName}</strong>. We've reserved your slot. A WhatsApp confirmation with the Zoom link has been sent to <span className="font-mono text-cyan-300">{formData.phone}</span>.
+                  Thank you, <strong className="text-white">{formData.fullName}</strong>. Your registration has been saved to the database. We've reserved your slot for <span className="font-mono text-cyan-300">{selectedDemoSlot}</span>.
                 </p>
 
                 {/* Immediate Next Step CTAs */}
-                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-left space-y-2 mt-4">
+                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-left space-y-2.5 mt-4">
                   <div className="text-xs font-bold text-white">Recommended Next Steps:</div>
+                  <button
+                    onClick={downloadCalendarInvite}
+                    className="w-full py-2.5 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all min-h-[44px]"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Add Demo Slot to Google Calendar (.ics)</span>
+                  </button>
                   <a
                     href="https://chat.whatsapp.com/sample-community"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center transition-all"
+                    className="block w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center transition-all min-h-[44px] flex items-center justify-center gap-2"
                   >
-                    Join Private WhatsApp Prep Group
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Join Private WhatsApp Prep Group</span>
                   </a>
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="block w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold text-center transition-all"
+                    className="block w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold text-center transition-all"
                   >
                     Back to Curriculum
                   </button>
@@ -762,6 +789,12 @@ export const AICoursePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Submissions Viewer Modal */}
+      <SubmissionsViewerModal
+        isOpen={isDatabaseModalOpen}
+        onClose={() => setIsDatabaseModalOpen(false)}
+      />
     </div>
   );
 };

@@ -44,3 +44,4 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
     </footer>
   );
 };
+

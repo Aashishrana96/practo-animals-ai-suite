@@ -9,11 +9,12 @@ import {
   Clock, 
   ShieldCheck, 
   AlertCircle, 
-  Navigation,
+  Navigation as NavigationIcon,
   CheckCircle2,
   DollarSign,
   User,
-  Heart
+  Heart,
+  ExternalLink
 } from 'lucide-react';
 
 interface ProviderDetailModalProps {
@@ -30,6 +31,8 @@ export const ProviderDetailModal: React.FC<ProviderDetailModalProps> = ({
   onOpenBook
 }) => {
   if (!provider) return null;
+
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(provider.name + ' ' + provider.address)}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in">
@@ -183,11 +186,25 @@ export const ProviderDetailModal: React.FC<ProviderDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Location & Address */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Clinic Address</h3>
-            <p className="text-sm font-medium text-slate-800">{provider.address}</p>
-            <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
+          {/* Location & Directions */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Clinic Address</h3>
+                <p className="text-sm font-medium text-slate-800">{provider.address}</p>
+              </div>
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-lg bg-teal-100 hover:bg-teal-200 text-teal-800 font-bold text-xs flex items-center gap-1.5 flex-shrink-0"
+              >
+                <NavigationIcon className="w-3.5 h-3.5" />
+                <span>Google Maps</span>
+              </a>
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-xs text-slate-600 pt-1">
               <span className="font-medium">Languages:</span>
               <span>{provider.languages.join(', ')}</span>
               <span className="mx-1">•</span>

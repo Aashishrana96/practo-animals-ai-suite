@@ -208,3 +208,4 @@ export const WrittenBrief: React.FC<WrittenBriefProps> = ({ navigate }) => {
     </div>
   );
 };
+

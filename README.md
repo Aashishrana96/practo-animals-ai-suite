@@ -171,3 +171,4 @@ npm run preview
 1. **Focus Metros:** Seed data is centered on Bangalore (Indiranagar, Koramangala, HSR Layout, Whitefield, Jayanagar, Hebbal) with multi-city support for Mumbai, Delhi-NCR, Pune, and Hyderabad.
 2. **Pricing Transparency:** In-clinic consultation fees are displayed in INR (`₹150 - ₹900`) reflecting realistic Indian veterinary pricing.
 3. **No-Login Discovery:** Basic search and emergency ambulance lookups require zero authentication to ensure immediate life-saving care during emergencies.
+

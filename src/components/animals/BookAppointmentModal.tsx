@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Provider } from '../../types';
 import { X, Calendar, Clock, CheckCircle2, User, Phone, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { submitToBackend } from '../../utils/dataStore';
 
 interface BookAppointmentModalProps {
   provider: Provider | null;
@@ -23,22 +24,41 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
   const [parentName, setParentName] = useState('');
   const [parentPhone, setParentPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   if (!provider) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!petName.trim() || !parentName.trim() || !parentPhone.trim()) {
+      setErrorMsg('Please enter your pet name, your name, and phone number.');
+      return;
+    }
+    setErrorMsg('');
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      confetti({
-        particleCount: 70,
-        spread: 50,
-        origin: { y: 0.6 }
-      });
-      onSuccess(`Appointment enquiry sent to ${provider.name} for ${petName}! The clinic desk will confirm via WhatsApp / Call within 15 minutes.`);
-      onClose();
-    }, 600);
+
+    await submitToBackend('appointment_booking', {
+      providerId: provider.id,
+      providerName: provider.name,
+      petName,
+      petSpecies,
+      reason,
+      appointmentType,
+      date,
+      timeSlot,
+      parentName,
+      parentPhone,
+      fee: provider.consultationFee
+    });
+
+    setIsSubmitting(false);
+    confetti({
+      particleCount: 70,
+      spread: 50,
+      origin: { y: 0.6 }
+    });
+    onSuccess(`Appointment enquiry for ${petName} saved to database! The clinic desk at ${provider.name} will confirm via WhatsApp.`);
+    onClose();
   };
 
   return (
@@ -63,6 +83,12 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
             Verified Consultation Fee: <strong className="text-amber-300">₹{provider.consultationFee}</strong> (Pay at clinic / online after visit)
           </p>
         </div>
+
+        {errorMsg && (
+          <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl">
+            {errorMsg}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 flex-grow">
@@ -202,7 +228,7 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
               className="w-full min-h-[48px] py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{isSubmitting ? 'Requesting Appointment...' : 'Confirm Appointment Request (Free)'}</span>
+              <span>{isSubmitting ? 'Saving to Database...' : 'Confirm Appointment Request (Free)'}</span>
             </button>
             <p className="text-[11px] text-center text-slate-400 mt-2">
               No advance payment needed. Direct coordination with clinic reception.

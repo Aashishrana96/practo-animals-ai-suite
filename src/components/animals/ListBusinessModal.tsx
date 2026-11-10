@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckCircle, ArrowRight, ArrowLeft, Building2, Stethoscope, ShieldCheck, Upload } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { submitToBackend } from '../../utils/dataStore';
 
 interface ListBusinessModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ export const ListBusinessModal: React.FC<ListBusinessModalProps> = ({
   onSubmitSuccess
 }) => {
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     businessName: '',
     category: 'vet',
@@ -32,10 +35,24 @@ export const ListBusinessModal: React.FC<ListBusinessModalProps> = ({
   if (!isOpen) return null;
 
   const handleNext = () => {
+    if (step === 1) {
+      if (!formData.businessName.trim() || !formData.locality.trim() || !formData.phone.trim()) {
+        setErrorMessage('Please fill in practice name, locality, and contact phone.');
+        return;
+      }
+    }
+    if (step === 2) {
+      if (formData.animals.length === 0) {
+        setErrorMessage('Please select at least one animal species treated.');
+        return;
+      }
+    }
+    setErrorMessage('');
     if (step < 3) setStep(step + 1);
   };
 
   const handleBack = () => {
+    setErrorMessage('');
     if (step > 1) setStep(step - 1);
   };
 
@@ -49,14 +66,24 @@ export const ListBusinessModal: React.FC<ListBusinessModalProps> = ({
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.vciRegistrationNumber.trim()) {
+      setErrorMessage('Please enter the VCI or State Veterinary Council registration number.');
+      return;
+    }
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    await submitToBackend('clinic_listing', formData);
+
+    setIsSubmitting(false);
     confetti({
       particleCount: 80,
       spread: 60,
       origin: { y: 0.6 }
     });
-    onSubmitSuccess(`Listing application for "${formData.businessName}" submitted! Our veterinary verifications team will reach out within 24 hours.`);
+    onSubmitSuccess(`Listing application for "${formData.businessName}" saved & synced to database! Verification review in progress.`);
     onClose();
     setStep(1);
   };
@@ -98,6 +125,13 @@ export const ListBusinessModal: React.FC<ListBusinessModalProps> = ({
             Step {step} of 3: {step === 1 ? 'Clinic & Location' : step === 2 ? 'Services & Animals' : 'Verification & License'}
           </div>
         </div>
+
+        {/* Error message */}
+        {errorMessage && (
+          <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl">
+            {errorMessage}
+          </div>
+        )}
 
         {/* Form Body */}
         <div className="p-6 overflow-y-auto space-y-4 flex-grow">
@@ -328,10 +362,11 @@ export const ListBusinessModal: React.FC<ListBusinessModalProps> = ({
             <button
               type="button"
               onClick={handleSubmit}
+              disabled={isSubmitting}
               className="flex items-center gap-1.5 px-6 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-md min-h-[44px]"
             >
               <CheckCircle className="w-4 h-4" />
-              <span>Submit for Verification</span>
+              <span>{isSubmitting ? 'Saving to Database...' : 'Submit for Verification'}</span>
             </button>
           )}
         </div>

@@ -292,3 +292,4 @@ Provide visual layout rules for rendering this carousel in HTML/CSS:
    - Minimum 64px safe margins on all 4 sides for Instagram UI overlays
    - Generous whitespace: 40% negative space on every slide.`
 };
+

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Provider } from '../../types';
 import { X, CheckCircle, AlertCircle, Send } from 'lucide-react';
+import { submitToBackend } from '../../utils/dataStore';
 
 interface SubmitCorrectionModalProps {
   provider: Provider | null;
@@ -18,17 +19,31 @@ export const SubmitCorrectionModal: React.FC<SubmitCorrectionModalProps> = ({
   const [notes, setNotes] = useState('');
   const [reporterContact, setReporterContact] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   if (!provider) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!correctedValue.trim() || !reporterContact.trim()) {
+      setErrorMsg('Please fill in both the corrected value and your contact info.');
+      return;
+    }
+    setErrorMsg('');
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onSubmitSuccess(`Correction for "${provider.name}" received. Our data verification team will review within 12 hours.`);
-      onClose();
-    }, 600);
+
+    await submitToBackend('clinic_correction', {
+      providerId: provider.id,
+      providerName: provider.name,
+      issueType,
+      correctedValue,
+      notes,
+      reporterContact
+    });
+
+    setIsSubmitting(false);
+    onSubmitSuccess(`Correction for "${provider.name}" saved and synced to database! Verification review in progress.`);
+    onClose();
   };
 
   return (
@@ -53,6 +68,12 @@ export const SubmitCorrectionModal: React.FC<SubmitCorrectionModalProps> = ({
         <p className="text-xs text-slate-500 mt-1">
           Helping India's pet parents get 100% verified data for <span className="font-semibold text-slate-800">{provider.name}</span>.
         </p>
+
+        {errorMsg && (
+          <div className="mt-3 p-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold">
+            {errorMsg}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
@@ -83,7 +104,7 @@ export const SubmitCorrectionModal: React.FC<SubmitCorrectionModalProps> = ({
               required
               value={correctedValue}
               onChange={(e) => setCorrectedValue(e.target.value)}
-              placeholder="e.g. New direct number is +91 80 4115 1060"
+              placeholder="e.g. New direct emergency number is +91 80 4115 1060"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
@@ -96,7 +117,7 @@ export const SubmitCorrectionModal: React.FC<SubmitCorrectionModalProps> = ({
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Visited clinic yesterday; they no longer offer overnight boarding."
+              placeholder="e.g. Visited clinic yesterday; they also offer overnight ICU care now."
               className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
@@ -129,7 +150,7 @@ export const SubmitCorrectionModal: React.FC<SubmitCorrectionModalProps> = ({
               className="px-5 py-2.5 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-all shadow-sm flex items-center gap-2 min-h-[44px]"
             >
               <Send className="w-4 h-4" />
-              <span>{isSubmitting ? 'Submitting...' : 'Submit Update'}</span>
+              <span>{isSubmitting ? 'Saving to Database...' : 'Submit Update'}</span>
             </button>
           </div>
         </form>

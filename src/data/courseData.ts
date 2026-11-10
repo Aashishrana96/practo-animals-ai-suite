@@ -264,3 +264,4 @@ export const FAQS = [
     answer: "You will build three production systems: 1) An Autonomous Social Media Carousel & Content Engine, 2) A 2-Way Conversational WhatsApp Triage Agent with Memory, and 3) Your custom Capstone Web Application deployed on a live URL with authentication."
   }
 ];
+

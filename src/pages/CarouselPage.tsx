@@ -32,6 +32,9 @@ export const CarouselPage: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [theme, setTheme] = useState<'obsidian' | 'emerald' | 'minimal'>('obsidian');
 
+  // Touch Swipe support
+  const touchStartXRef = useRef<number | null>(null);
+
   // Export progress states
   const [isExportingPng, setIsExportingPng] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -62,6 +65,22 @@ export const CarouselPage: React.FC = () => {
       copy[currentSlideIndex] = { ...copy[currentSlideIndex], subtitle: text };
       return copy;
     });
+  };
+
+  // Touch handlers for mobile swiping
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null) return;
+    const diff = touchStartXRef.current - e.changedTouches[0].clientX;
+    if (diff > 50 && currentSlideIndex < slides.length - 1) {
+      setCurrentSlideIndex(prev => prev + 1);
+    } else if (diff < -50 && currentSlideIndex > 0) {
+      setCurrentSlideIndex(prev => prev - 1);
+    }
+    touchStartXRef.current = null;
   };
 
   // Export handlers
@@ -187,7 +206,7 @@ export const CarouselPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
         {/* Carousel Visualizer & Interactive Editor Grid */}
         <div className="grid lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Carousel Canvas Preview (1080x1350 aspect ratio container) */}
+          {/* Left Column: Carousel Canvas Preview */}
           <div className="lg:col-span-7 flex flex-col items-center">
             {/* Slide Navigation Bar */}
             <div className="w-full flex items-center justify-between mb-4 bg-[#0B0F19] p-3 rounded-2xl border border-slate-800">
@@ -195,7 +214,7 @@ export const CarouselPage: React.FC = () => {
                 <button
                   onClick={() => setCurrentSlideIndex(prev => Math.max(0, prev - 1))}
                   disabled={currentSlideIndex === 0}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
                   aria-label="Previous slide"
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -203,7 +222,7 @@ export const CarouselPage: React.FC = () => {
                 <button
                   onClick={() => setCurrentSlideIndex(prev => Math.min(slides.length - 1, prev + 1))}
                   disabled={currentSlideIndex === slides.length - 1}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
                   aria-label="Next slide"
                 >
                   <ChevronRight className="w-5 h-5" />
@@ -217,7 +236,7 @@ export const CarouselPage: React.FC = () => {
               <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
                 <button
                   onClick={() => setTheme('obsidian')}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                  className={`px-2.5 py-1.5 rounded-lg font-semibold transition-all ${
                     theme === 'obsidian' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -225,7 +244,7 @@ export const CarouselPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setTheme('emerald')}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                  className={`px-2.5 py-1.5 rounded-lg font-semibold transition-all ${
                     theme === 'emerald' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -233,7 +252,7 @@ export const CarouselPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setTheme('minimal')}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                  className={`px-2.5 py-1.5 rounded-lg font-semibold transition-all ${
                     theme === 'minimal' ? 'bg-slate-200 text-slate-900' : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -242,13 +261,16 @@ export const CarouselPage: React.FC = () => {
               </div>
             </div>
 
-            {/* THE LIVE 1080x1350 CANVASES (Target Element for html-to-image) */}
-            <div className="w-full max-w-[460px] shadow-2xl rounded-3xl overflow-hidden border border-slate-700/80 transition-all">
+            {/* THE LIVE 1080x1350 CANVASES */}
+            <div 
+              className="w-full max-w-[460px] shadow-2xl rounded-3xl overflow-hidden border border-slate-700/80 transition-all touch-pan-y"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
               <div
                 ref={activeSlideRef}
                 className={`w-full aspect-[4/5] ${themeStyles.bg} p-8 sm:p-10 flex flex-col justify-between select-none relative overflow-hidden`}
               >
-                {/* Subtle graphic accent */}
                 <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
 
                 {/* Top Slide Header */}
@@ -288,7 +310,7 @@ export const CarouselPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Stat Callout if present */}
+                  {/* Stat Callout */}
                   {currentSlide.statNumber && (
                     <div className={`mt-4 p-4 rounded-2xl border ${themeStyles.calloutBg}`}>
                       <div className="text-3xl sm:text-4xl font-black font-mono text-amber-400 tracking-tight">
@@ -300,7 +322,7 @@ export const CarouselPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Quote if present */}
+                  {/* Quote */}
                   {currentSlide.quote && (
                     <div className="mt-4 p-4 rounded-xl bg-white/5 border-l-4 border-amber-400 italic text-xs sm:text-sm text-slate-200">
                       {currentSlide.quote}
@@ -581,7 +603,7 @@ export const CarouselPage: React.FC = () => {
         ref={hiddenSlidesContainerRef}
         style={{ position: 'fixed', left: '-9999px', top: '-9999px', width: '1080px' }}
       >
-        {slides.map((s, index) => (
+        {slides.map((s) => (
           <div
             key={s.id}
             className="export-slide-target"
